@@ -1,0 +1,6 @@
+id=selinux_permissive
+name=SELinux Permissive
+version=v1
+versionCode=1
+author=Denis Efremov (@evdenis)
+description=Switch SELinux to permissive mode.

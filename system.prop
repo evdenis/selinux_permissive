@@ -1,0 +1,3 @@
+ro.boot.selinux=permissive
+ro.build.selinux.enforce=0
+vendor.boot.selinux=permissive
