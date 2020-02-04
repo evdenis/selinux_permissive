@@ -21,3 +21,7 @@ Master branch:
 3. git archive --output selinux_permissive.zip HEAD
 4. adb push selinux_permissive.zip /sdcard/
 5. MagiskManager -> Modules + selinux_permissive.zip -> Reboot
+
+## Support
+
+- [Telegram](https://t.me/joinchat/GsJfBBaxozXvVkSJhm0IOQ)
