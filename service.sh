@@ -2,7 +2,7 @@
 
 # Schedule task
 
-nohup /bin/sh > /dev/null 2>&1 <<EOF &
+nohup sh > /dev/null 2>&1 <<EOF &
 
 wait_boot_complete()
 {
