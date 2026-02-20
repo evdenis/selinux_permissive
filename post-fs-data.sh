@@ -11,3 +11,11 @@ if [ "$(getenforce)" != "Permissive" ]
 then
 	log -t selinux_permissive "Failed to set SELinux to permissive. Kernel may enforce always-enforcing mode."
 fi
+
+# Hide permissive state from non-root processes
+chmod 640 /sys/fs/selinux/enforce
+
+if [ -x "$(command -v resetprop)" ]
+then
+	resetprop -n ro.boot.selinux enforcing
+fi
