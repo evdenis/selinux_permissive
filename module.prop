@@ -1,6 +1,7 @@
 id=selinux_permissive
 name=SELinux Permissive
-version=v2
-versionCode=2
+version=v3.0
+versionCode=3
 author=Denis Efremov (@evdenis)
-description=Switch SELinux to permissive mode.
+description=Switch SELinux to permissive mode and hide permissive state from apps.
+updateJson=https://raw.githubusercontent.com/evdenis/selinux_permissive/master/update.json
