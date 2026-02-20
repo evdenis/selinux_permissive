@@ -1,0 +1,16 @@
+#!/system/bin/sh
+
+ui_print "************************************"
+ui_print " SELinux Permissive"
+ui_print "************************************"
+ui_print ""
+ui_print " WARNING: This module sets SELinux to"
+ui_print " permissive mode, which lowers the"
+ui_print " security of your device."
+ui_print ""
+ui_print " The module will NOT work if your"
+ui_print " kernel enforces always-enforcing"
+ui_print " mode (e.g. stock Samsung kernels)."
+ui_print ""
+ui_print " A reboot is required to apply."
+ui_print "************************************"
