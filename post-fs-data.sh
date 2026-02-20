@@ -1,3 +1,5 @@
+#!/system/bin/sh
+
 if [ -x "$(command -v setenforce)" ]
 then
 	setenforce 0
