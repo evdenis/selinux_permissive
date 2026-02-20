@@ -11,7 +11,7 @@ e.g., stock samsung kernels.
 ## How to install:
 
 Stable release:
-1. Dowload latest selinux_permissive.zip from releases page
+1. Download latest selinux_permissive.zip from releases page
    https://github.com/evdenis/selinux_permissive/releases
 2. MagiskManager -> Modules + Downloads/selinux_permissive.zip -> Reboot
 
