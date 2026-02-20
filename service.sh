@@ -34,4 +34,10 @@ then
 	resetprop -n ro.boot.selinux enforcing
 fi
 
+# Delete legacy property (removed in Android 8, but present on older devices)
+if [ -x "\$(command -v resetprop)" ] && [ -n "\$(resetprop ro.build.selinux)" ]
+then
+	resetprop --delete ro.build.selinux
+fi
+
 EOF
