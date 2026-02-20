@@ -1,4 +1,4 @@
-getprop = $(shell cat module.prop | grep "^$(1)=" | head -n1 | cut -d'=' -f2)
+getprop = $(shell grep "^$(1)=" module.prop | head -n1 | cut -d'=' -f2)
 
 MODNAME ?= $(call getprop,id)
 MODVER ?= $(call getprop,version)
