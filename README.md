@@ -8,6 +8,15 @@ phone. Please, don't use it if you don't know what you are doing.
 The module will not work if your kernel compiled with always enforcing config,
 e.g., stock samsung kernels.
 
+## Features
+
+- Sets SELinux to permissive mode at both post-fs-data and service stages
+- Hides permissive state from non-root apps:
+  - Restricts read access to `/sys/fs/selinux/enforce`
+  - Masks `ro.boot.selinux` property via resetprop
+- Supports Magisk Manager auto-update
+- Clean removal via uninstall.sh (restores sysfs permissions and property)
+
 ## How to install:
 
 Stable release:
