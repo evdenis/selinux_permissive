@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify tag matches module.prop version
+        run: |
+          PROP_VER=$(grep '^version=' module.prop | cut -d= -f2)
+          if [ "${GITHUB_REF_NAME}" != "${PROP_VER}" ]; then
+            echo "::error::Tag ${GITHUB_REF_NAME} does not match module.prop version ${PROP_VER}"
+            exit 1
+          fi
+
+      - name: Build zip
+        run: make zip
+
+      - name: Extract release notes from CHANGELOG.md
+        run: |
+          awk -v tag="## ${GITHUB_REF_NAME}" '
+            $0 == tag { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > /tmp/release-notes.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: /tmp/release-notes.txt
+          files: '*.zip'
