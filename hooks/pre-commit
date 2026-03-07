@@ -1,0 +1,81 @@
+#!/usr/bin/env sh
+# Pre-commit hook: ShellCheck, version consistency, updater-script content
+# Install: make setup
+
+set -e
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "${STAGED}" ]; then
+    exit 0
+fi
+
+ERRORS=0
+
+# --- ShellCheck on staged .sh files ---
+SH_FILES=$(echo "${STAGED}" | grep '\.sh$' || true)
+if [ -n "${SH_FILES}" ]; then
+    if command -v shellcheck >/dev/null 2>&1; then
+        SHELLCHECK_FAIL=0
+        for f in ${SH_FILES}; do
+            if ! git show ":${f}" | shellcheck -s sh -; then
+                SHELLCHECK_FAIL=1
+            fi
+        done
+        if [ "${SHELLCHECK_FAIL}" -eq 0 ]; then
+            printf "[OK]   ShellCheck passed\n"
+        else
+            printf "[FAIL] ShellCheck found issues\n"
+            ERRORS=$((ERRORS + 1))
+        fi
+    else
+        printf "[SKIP] shellcheck not installed\n"
+    fi
+fi
+
+# --- Version consistency between module.prop and update.json ---
+NEED_VERSION_CHECK=$(echo "${STAGED}" | grep -E '^(module\.prop|update\.json)$' || true)
+if [ -n "${NEED_VERSION_CHECK}" ]; then
+    if command -v python3 >/dev/null 2>&1; then
+        PROP_VER=$(git show :module.prop | grep '^version=' | cut -d= -f2)
+        PROP_VC=$(git show :module.prop | grep '^versionCode=' | cut -d= -f2)
+        JSON_VER=$(git show :update.json | python3 -c "import json,sys; print(json.load(sys.stdin)['version'])")
+        JSON_VC=$(git show :update.json | python3 -c "import json,sys; print(json.load(sys.stdin)['versionCode'])")
+
+        if [ "${PROP_VER}" = "${JSON_VER}" ]; then
+            printf "[OK]   version match: '%s'\n" "${PROP_VER}"
+        else
+            printf "[FAIL] version mismatch: module.prop '%s' != update.json '%s'\n" "${PROP_VER}" "${JSON_VER}"
+            ERRORS=$((ERRORS + 1))
+        fi
+
+        if [ "${PROP_VC}" = "${JSON_VC}" ]; then
+            printf "[OK]   versionCode match: '%s'\n" "${PROP_VC}"
+        else
+            printf "[FAIL] versionCode mismatch: module.prop '%s' != update.json '%s'\n" "${PROP_VC}" "${JSON_VC}"
+            ERRORS=$((ERRORS + 1))
+        fi
+    else
+        printf "[SKIP] python3 not available, cannot check version consistency\n"
+    fi
+fi
+
+# --- updater-script content ---
+US="META-INF/com/google/android/updater-script"
+US_STAGED=$(echo "${STAGED}" | grep "^${US}$" || true)
+if [ -n "${US_STAGED}" ]; then
+    CONTENT=$(git show ":${US}")
+    if [ "${CONTENT}" = "#MAGISK" ]; then
+        printf "[OK]   updater-script contains exactly '#MAGISK'\n"
+    else
+        printf "[FAIL] updater-script content is not '#MAGISK'\n"
+        ERRORS=$((ERRORS + 1))
+    fi
+fi
+
+if [ "${ERRORS}" -gt 0 ]; then
+    printf "\nPre-commit check failed with %d error(s). Fix issues and retry.\n" "${ERRORS}"
+    exit 1
+fi
+
+exit 0

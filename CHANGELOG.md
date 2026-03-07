@@ -6,6 +6,7 @@
 - Add install-time security warning (customize.sh)
 - Add cleanup on module removal (uninstall.sh)
 - Add Magisk Manager auto-update support (updateJson)
+- Add pre-commit hook for ShellCheck and version consistency checks
 
 ## v2.0
 - Delay service.sh switch to boot completion
