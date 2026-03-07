@@ -16,16 +16,48 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Verify tag matches module.prop version
+      - name: Verify version consistency
         run: |
           PROP_VER=$(grep '^version=' module.prop | cut -d= -f2)
-          if [ "${GITHUB_REF_NAME}" != "${PROP_VER}" ]; then
-            echo "::error::Tag ${GITHUB_REF_NAME} does not match module.prop version ${PROP_VER}"
-            exit 1
+          PROP_VC=$(grep '^versionCode=' module.prop | cut -d= -f2)
+          JSON_VER=$(python3 -c "import json; print(json.load(open('update.json'))['version'])")
+          JSON_VC=$(python3 -c "import json; print(json.load(open('update.json'))['versionCode'])")
+          ZIP_URL=$(python3 -c "import json; print(json.load(open('update.json'))['zipUrl'])")
+          TAG="${GITHUB_REF_NAME}"
+          ERRORS=0
+          [ "${TAG}" != "${PROP_VER}" ] && echo "::error::Tag ${TAG} != module.prop version ${PROP_VER}" && ERRORS=$((ERRORS+1))
+          [ "${TAG}" != "${JSON_VER}" ] && echo "::error::Tag ${TAG} != update.json version ${JSON_VER}" && ERRORS=$((ERRORS+1))
+          [ "${PROP_VC}" != "${JSON_VC}" ] && echo "::error::module.prop versionCode ${PROP_VC} != update.json versionCode ${JSON_VC}" && ERRORS=$((ERRORS+1))
+          echo "${ZIP_URL}" | grep -q "${TAG}" || { echo "::error::update.json zipUrl does not contain tag ${TAG}"; ERRORS=$((ERRORS+1)); }
+          grep -q "^## ${TAG}$" CHANGELOG.md || { echo "::error::CHANGELOG.md missing section for ${TAG}"; ERRORS=$((ERRORS+1)); }
+          [ "${ERRORS}" -gt 0 ] && exit 1
+          echo "All version checks passed"
+
+      - name: ShellCheck
+        run: |
+          if ls *.sh 1>/dev/null 2>&1; then
+            shellcheck -s sh *.sh
           fi
+
+      - name: Check update-binary freshness
+        run: |
+          curl -sL https://raw.githubusercontent.com/topjohnwu/Magisk/master/scripts/module_installer.sh \
+            | diff - META-INF/com/google/android/update-binary \
+            || echo "::warning::update-binary differs from upstream Magisk (run: make update)"
+
+      - name: Verify updater-script
+        run: |
+          [ "$(cat META-INF/com/google/android/updater-script)" = "#MAGISK" ] \
+            || { echo "::error::updater-script must contain exactly '#MAGISK'"; exit 1; }
 
       - name: Build zip
         run: make zip
+
+      - name: Verify zip contents
+        run: |
+          unzip -l *.zip
+          unzip -l *.zip | grep -qE '\.git/|Makefile|README\.md' \
+            && { echo "::error::Dev files found in zip"; exit 1; } || true
 
       - name: Extract release notes from CHANGELOG.md
         run: |
