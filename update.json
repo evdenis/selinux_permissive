@@ -1,6 +1,6 @@
 {
-  "version": "v3.0",
-  "versionCode": 3,
-  "zipUrl": "https://github.com/evdenis/selinux_permissive/releases/download/v3.0/selinux_permissive-v3.0.zip",
+  "version": "v3.1",
+  "versionCode": 4,
+  "zipUrl": "https://github.com/evdenis/selinux_permissive/releases/download/v3.1/selinux_permissive-v3.1.zip",
   "changelog": "https://raw.githubusercontent.com/evdenis/selinux_permissive/master/CHANGELOG.md"
 }
