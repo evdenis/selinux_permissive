@@ -14,30 +14,28 @@ wait_boot_complete()
 
 wait_boot_complete
 
-if [ -x "\$(command -v setenforce)" ]
+# Re-apply after boot in case policy was reloaded.
+# Avoid setenforce 0, which on Android 15+ causes FBE failures
+# (set_policy_failed: /data/media).
+if [ -x "\$(command -v magiskpolicy)" ] && magiskpolicy --live "permissive *"
 then
-	setenforce 0
+	:
+elif [ -x "\$(command -v ksud)" ] && ksud sepolicy patch "permissive *"
+then
+	:
+elif [ -x "\$(command -v setenforce)" ]
+then
+	setenforce 0 || log -t selinux_permissive "setenforce failed"
+	chmod 640 /sys/fs/selinux/enforce
 else
-	printf '0' > /sys/fs/selinux/enforce
+	printf '0' > /sys/fs/selinux/enforce || log -t selinux_permissive "sysfs write failed"
+	chmod 640 /sys/fs/selinux/enforce
 fi
-
-if [ "\$(getenforce)" != "Permissive" ]
-then
-	log -t selinux_permissive "Failed to set SELinux to permissive. Kernel may enforce always-enforcing mode."
-fi
-
-# Hide permissive state from non-root processes
-chmod 640 /sys/fs/selinux/enforce
 
 if [ -x "\$(command -v resetprop)" ]
 then
 	resetprop -n ro.boot.selinux enforcing
-fi
-
-# Delete legacy property (removed in Android 8, but present on older devices)
-if [ -x "\$(command -v resetprop)" ] && [ -n "\$(resetprop ro.build.selinux)" ]
-then
-	resetprop --delete ro.build.selinux
+	resetprop --delete ro.build.selinux 2>/dev/null
 fi
 
 EOF
